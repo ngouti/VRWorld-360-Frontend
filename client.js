@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import SimpleRaycaster from "simple-raycaster";
 import WebVRPolyfill from 'webvr-polyfill';
 
-const local = "10.185.1.196"
+const local = "10.185.0.229"
 class Params extends Module {
   
   constructor(){

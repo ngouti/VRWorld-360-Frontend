@@ -8,10 +8,11 @@ import {
   Text,
   View,
   VrButton,
-   asset,
+  Image,
+   asset
 } from 'react-360';
 
-const local = "10.185.1.196"
+const local = "10.185.0.229"
 
 
 
@@ -21,12 +22,7 @@ class Background extends React.Component {
     super();
     Environment.setBackgroundImage(props.uri, {format: props.format});
     
-  
-  
   }
-
-  
-
 
   componentWillReceiveProps(nextProps) {
     if (
@@ -60,22 +56,27 @@ class Slideshow extends React.Component {
     watchTime: 2,
     progress: 0,
     watching: false,
-    vrMode: true
+    vrMode: true,
+    comments: []
   };
 
   componentDidMount(){
+  
     
-    fetch(`http://${local}:3000/users/${Params.user}/images`,{
+    fetch(`http://${local}:3000/${Params.user}/imagesandcomment`,{
       headers:{
         Authorization: `Bearer ${Params.token}`
       }
     })
     .then(res => res.json())
     .then(res => this.setState({
-      images: res
+      images: res.images,
+      comments: res.comments
     }))
     
   }
+
+
 
   startClickCountdown(clickFunction) {
     this.timeout = setTimeout(()=> {
@@ -102,7 +103,7 @@ console.log('stop');
   goBack() {
     let next = this.state.index - 1;
     if (next < 0) {
-      next += this.props.photos.length;
+      next += this.state.images.length;
     }
     this.setState({
       index: next,
@@ -125,9 +126,10 @@ console.log('stop');
     const current = this.state.images[
       this.state.index % this.state.images.length
     ];
-    console.log(this.state.images)
+    console.log("photos",this.props.photos)
    
-    console.log("PARAMD", Params)
+    console.log("comments", this.state.comments)
+    console.log("current",current)
    if(this.state.vrMode){
     return (
       
@@ -171,7 +173,7 @@ console.log('stop');
            onEnter={ () => this.startClickCountdown(this.pickPhoto) }
            onExit={ () => this.stopProgress() }
           style={styles.button}>
-            <Text style={styles.buttonText}>{'Pick a photo'}</Text>
+            <Text style={styles.buttonText}>{'View Comments'}</Text>
           </VrButton>
       </View>
       </View>
@@ -180,16 +182,32 @@ console.log('stop');
    } else {
     return (
       <View style={styles.panel}>
+      <Text style={styles.otherText}>IMAGE COMMENTS</Text>
       <View style={styles.section}>
       </View>
       <View style={styles.scenePage}>
+      <View>
+      {this.state.comments.map(comment=> 
+            comment.map(c => (
+          <View>
+               {c.image_id === current.id ?
+                <Text style={styles.otherText}> {c.content}</Text>
+        :
+        null
+               }
+          </View>
+        ))
+        
+         
+        )}
+      </View>
+      </View>
       <VrButton 
            onEnter={ () => this.startClickCountdown(this.goBackMain) }
            onExit={ () => this.stopProgress() }
           style={styles.button}>
             <Text style={styles.buttonText}>{'Go Back to Main'}</Text>
           </VrButton>
-      </View>
     </View>
     )
   }
@@ -233,6 +251,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  otherText: {
+    textAlign: 'center',
+    color: '#000000',
+    fontSize: 35,
+    fontWeight: 'bold',
+  },
   panel: {
     width: 1000,
     height: 600,
@@ -245,13 +269,13 @@ const styles = StyleSheet.create({
     padding: 5,
     width: 750,
     backgroundColor: '#000000',
-    borderColor: '#639dda',
+    borderColor: 'white',
     borderWidth: 2,
     flexDirection: 'row',
   },
   scenePage: {
     padding: 5,
-    width: 600,
+    width: 900,
     height: 300,
     backgroundColor: 'grey',
     borderRadius: 5,
